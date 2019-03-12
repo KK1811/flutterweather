@@ -6,6 +6,9 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_weather/widgets/Weather.dart';
 import 'package:flutter_weather/models/WeatherData.dart';
+import 'package:flutter_weather/models/ForecastData.dart';
+import 'package:flutter_weather/widgets/WeatherItem.dart';
+
 
 void main() => runApp(new MyApp());
 
@@ -19,6 +22,7 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   bool isLoading = false;
   WeatherData weatherData;
+  ForecastData forecastData;
   Location _location = new Location();
   String error;
 
@@ -37,7 +41,7 @@ class MyAppState extends State<MyApp> {
         primarySwatch: Colors.blue,
       ),
       home: Scaffold(
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: Colors.lightBlue[200],
         appBar: AppBar(
           title: Text('Weather'),
         ),
@@ -56,6 +60,19 @@ class MyAppState extends State<MyApp> {
                   ],
                 ),
               ),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 200.0,
+                    child: forecastData != null ? ListView.builder(
+                        itemCount: forecastData.list.length,
+                        scrollDirection: Axis.vertical,
+                        itemBuilder: (context, index) => WeatherItem(weather: forecastData.list.elementAt(index))
+                    ) : Container(),
+                  ),
+                ),
+              )
             ]
           )
         )
@@ -93,13 +110,15 @@ class MyAppState extends State<MyApp> {
               .toString()}&lon=${lon.toString()}&units=metric');
       final forecastResponse = await http.get(
           'https://api.openweathermap.org/data/2.5/forecast?APPID=0721392c0ba0af8c410aa9394defa29e&lat=${lat
-              .toString()}&lon=${lon.toString()}');
+              .toString()}&lon=${lon.toString()}&units=metric');
 
       if (weatherResponse.statusCode == 200 &&
           forecastResponse.statusCode == 200) {
         return setState(() {
           weatherData =
           new WeatherData.fromJson(jsonDecode(weatherResponse.body));
+          forecastData =
+          new ForecastData.fromJson(jsonDecode(forecastResponse.body));
           isLoading = false;
         });
       }
